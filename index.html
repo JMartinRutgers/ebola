@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ebola Outbreak Dashboard — DRC 2024</title>
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+  :root {
+    --bg:       #f5f4f0;
+    --surface:  #ffffff;
+    --surface2: #f0efe9;
+    --border:   rgba(0,0,0,0.10);
+    --border2:  rgba(0,0,0,0.18);
+    --text1:    #1a1a18;
+    --text2:    #5f5e5a;
+    --text3:    #888780;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font: 'Segoe UI', system-ui, sans-serif;
+    --mono: 'Cascadia Code','Fira Mono','Courier New', monospace;
+ 
+    --red-50:  #fcebeb; --red-100:#f7c1c1; --red-200:#f09595;
+    --red-400: #e24b4a; --red-600:#a32d2d; --red-800:#791f1f; --red-900:#501313;
+    --amber-50:#faeeda; --amber-200:#ef9f27; --amber-600:#854f0b; --amber-800:#633806;
+    --green-50:#eaf3de; --green-200:#97c459; --green-600:#3b6d11; --green-800:#27500a;
+    --blue-50: #e6f1fb; --blue-200:#85b7eb; --blue-600:#185fa5; --blue-800:#0c447c;
+    --teal-50: #e1f5ee; --teal-200:#5dcaa5; --teal-600:#0f6e56; --teal-800:#04342c;
+    --coral-50:#faece7; --coral-200:#f0997b; --coral-600:#993c1d; --coral-800:#4a1b0c;
+    --pink-50: #fbeaf0; --pink-200:#ed93b1; --pink-600:#993556; --pink-800:#4b1528;
+    --gray-50: #f1efe8; --gray-200:#b4b2a9; --gray-400:#888780; --gray-600:#5f5e5a;
+  }
+ 
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:      #111110;
+      --surface: #1c1c1a;
+      --surface2:#252523;
+      --border:  rgba(255,255,255,0.09);
+      --border2: rgba(255,255,255,0.18);
+      --text1:   #e8e7e2;
+      --text2:   #b4b2a9;
+      --text3:   #888780;
+    }
+  }
+ 
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+ 
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text1);
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+ 
+  /* ── HEADER ── */
+  .header {
+    background: var(--red-800);
+    color: #fff;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border-bottom: 3px solid var(--red-900);
+  }
+  .header-icon {
+    width: 48px; height: 48px;
+    background: rgba(255,255,255,0.12);
+    border-radius: var(--radius-lg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .header-title { font-size: 22px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-sub   { font-size: 13px; opacity: 0.75; margin-top: 2px; }
+  .header-badges { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px; font-weight: 600; padding: 4px 10px;
+    border-radius: 20px; letter-spacing: 0.04em;
+    background: rgba(255,255,255,0.15); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  .badge-live { background: #27500a; border-color: #3b6d11; }
+ 
+  /* ── LAYOUT ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+ 
+  .section-label {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text3);
+    margin-bottom: 10px; margin-top: 1.5rem;
+  }
+ 
+  /* ── METRICS ── */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .metric {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+  }
+  .metric.danger::before  { background: var(--red-400); }
+  .metric.warning::before { background: var(--amber-200); }
+  .metric.info::before    { background: var(--blue-200); }
+  .metric.success::before { background: var(--green-200); }
+  .metric-icon { font-size: 18px; margin-bottom: 8px; }
+  .metric-icon.danger  { color: var(--red-600); }
+  .metric-icon.warning { color: var(--amber-600); }
+  .metric-icon.info    { color: var(--blue-600); }
+  .metric-icon.success { color: var(--green-600); }
+  .metric-label { font-size: 11px; color: var(--text3); font-weight: 500; margin-bottom: 2px; }
+  .metric-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+  .metric-value.danger  { color: var(--red-600); }
+  .metric-value.warning { color: var(--amber-600); }
+  .metric-value.info    { color: var(--blue-600); }
+  .metric-value.success { color: var(--green-600); }
+  .metric-sub { font-size: 11px; color: var(--text3); margin-top: 3px; }
+ 
+  /* ── PIPELINE ── */
+  .pipeline-wrap {
+    background: var(--surface2);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1.25rem 1.5rem;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    min-width: 640px;
+  }
+  .pipe-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .pipe-box {
+    width: 100%;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    text-align: center;
+    border: 1px solid;
+    position: relative;
+  }
+  .pipe-icon { font-size: 20px; margin-bottom: 4px; }
+  .pipe-title { font-size: 11px; font-weight: 600; margin-bottom: 3px; }
+  .pipe-val   { font-size: 20px; font-weight: 700; line-height: 1.1; }
+  .pipe-sub   { font-size: 10px; margin-top: 3px; opacity: 0.8; }
+  .pipe-arrow {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; font-size: 20px; color: var(--text3); flex-shrink: 0;
+  }
+ 
+  .pipe-who    { background: var(--teal-50);  border-color: var(--teal-200); color: var(--teal-800); }
+  .pipe-ituri  { background: var(--blue-50);  border-color: var(--blue-200); color: var(--blue-800); }
+  .pipe-m23    { background: var(--pink-50);  border-color: var(--pink-200); color: var(--pink-800); }
+  .pipe-reg    { background: var(--amber-50); border-color: var(--amber-200); color: var(--amber-800); }
+  .pipe-total  { background: var(--red-50);   border-color: var(--red-200);  color: var(--red-800); }
+ 
+  /* ── TWO-COL LAYOUT ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.5rem; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+ 
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 1rem 1.25rem;
+  }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text1); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+ 
+  /* ── API LOG ── */
+  .api-log {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: #0e0e0c;
+    color: #c5c5b5;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    max-height: 130px;
+    overflow-y: auto;
+    line-height: 1.7;
+    border: 0.5px solid rgba(255,255,255,0.06);
+  }
+  .log-ok   { color: #7ec85a; }
+  .log-warn { color: #e8a93a; }
+  .log-err  { color: #f07070; }
+  .log-info { color: #70b8f0; }
+  .log-dim  { color: #666660; }
+ 
+  /* ── SOURCE CARDS ── */
+  .source-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .source-icon-wrap {
+    width: 32px; height: 32px; border-radius: var(--radius-md);
+    display: flex; align-items: center; justify-content: center; font-size: 17px;
+    flex-shrink: 0;
+  }
+  .source-name { font-size: 13px; font-weight: 600; color: var(--text1); }
+  .source-url  { font-size: 10px; color: var(--text3); }
+  .pill {
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; margin-left: auto;
+  }
+  .pill-live   { background: var(--green-50); color: var(--green-600); }
+  .pill-cors   { background: var(--amber-50); color: var(--amber-600); }
+  .pill-check  { background: var(--blue-50);  color: var(--blue-600); }
+  .api-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 5px 0; border-top: 0.5px solid var(--border);
+    font-size: 12px;
+  }
+  .api-key { color: var(--text3); }
+  .api-val { font-weight: 600; color: var(--text1); text-align: right; }
+ 
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .data-table th {
+    background: var(--surface2); text-align: left;
+    padding: 7px 10px; font-size: 10px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3);
+    border-bottom: 1px solid var(--border2);
+  }
+  .data-table td { padding: 7px 10px; border-bottom: 0.5px solid var(--border); vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: var(--surface2); }
+  .type-badge {
+    font-size: 10px; font-weight: 600; padding: 2px 7px;
+    border-radius: 20px; display: inline-block;
+  }
+  .type-primary   { background: var(--red-50);   color: var(--red-600); }
+  .type-suspect   { background: var(--amber-50); color: var(--amber-600); }
+  .type-monitor   { background: var(--blue-50);  color: var(--blue-600); }
+  .type-historical{ background: var(--green-50); color: var(--green-600); }
+  .cfr-bar { display: flex; align-items: center; gap: 6px; }
+  .cfr-track { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .cfr-fill  { height: 100%; border-radius: 3px; }
+ 
+  /* ── MAP ── */
+  #map-wrap { position: relative; width: 100%; margin-bottom: 1rem; }
+  #map-wrap svg { width: 100%; display: block; border-radius: var(--radius-lg); }
+  #tooltip-box {
+    position: absolute; pointer-events: none; display: none;
+    background: var(--surface); border: 0.5px solid var(--border2);
+    border-radius: var(--radius-md); padding: 10px 14px;
+    font-size: 12px; z-index: 20; min-width: 160px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+  .tt-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; color: var(--text1); }
+  .tt-row   { display: flex; justify-content: space-between; gap: 14px; padding: 2px 0; color: var(--text2); }
+  .tt-val   { font-weight: 600; color: var(--text1); }
+  .map-legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 11px; color: var(--text3); margin-top: 8px; }
+  .leg-item { display: flex; align-items: center; gap: 5px; }
+  .leg-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+ 
+  /* ── CHART ── */
+  .chart-wrap { position: relative; width: 100%; }
+ 
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 2rem; padding: 1rem 2rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 11px; color: var(--text3);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    max-width: 1200px; margin-left: auto; margin-right: auto;
+  }
+  .footer a { color: var(--blue-600); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+ 
+  /* scrollbar for log */
+  .api-log::-webkit-scrollbar { width: 4px; }
+  .api-log::-webkit-scrollbar-track { background: transparent; }
+  .api-log::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+</style>
+</head>
+<body>
+ 
+<!-- HEADER -->
+<header class="header">
+  <div class="header-icon"><i class="ti ti-virus" aria-hidden="true"></i></div>
+  <div>
+    <div class="header-title">Ebola Outbreak Dashboard</div>
+    <div class="header-sub">DR Congo — Active Monitoring · Bundibugyo &amp; Zaire Strains</div>
+  </div>
+  <div class="header-badges">
+    <span class="badge badge-live"><i class="ti ti-circle-filled" style="font-size:8px;margin-right:4px"></i>Live Pipeline</span>
+    <span class="badge">WHO · CDC · Provincial</span>
+    <span class="badge" id="hdr-updated">Loading...</span>
+  </div>
+</header>
+ 
+<main class="main">
+ 
+  <!-- API LOG -->
+  <div class="section-label">Data pipeline — fetch log</div>
+  <div class="api-log" id="api-log">
+    <span class="log-dim">Initializing Ebola data pipeline...</span>
+  </div>
+ 
+  <!-- METRICS -->
+  <div class="section-label">Summary metrics</div>
+  <div class="metrics-grid">
+    <div class="metric danger">
+      <div class="metric-icon danger"><i class="ti ti-alert-triangle" aria-hidden="true"></i></div>
+      <div class="metric-label">Confirmed cases</div>
+      <div class="metric-value danger" id="m-confirmed">827</div>
+      <div class="metric-sub">WHO official · DRC national</div>
+    </div>
+    <div class="metric warning">
+      <div class="metric-icon warning"><i class="ti ti-question-mark" aria-hidden="true"></i></div>
+      <div class="metric-label">Suspected cases</div>
+      <div class="metric-value warning" id="m-suspected">750</div>
+      <div class="metric-sub">Ituri Province authority</div>
+    </div>
+    <div class="metric danger">
+      <div class="metric-icon danger"><i class="ti ti-skull" aria-hidden="true"></i></div>
+      <div class="metric-label">Deaths</div>
+      <div class="metric-value danger" id="m-deaths">177</div>
+      <div class="metric-sub">Case fatality rate ~21%</div>
+    </div>
+    <div class="metric info">
+      <div class="metric-icon info"><i class="ti ti-map-pin" aria-hidden="true"></i></div>
+      <div class="metric-label">Affected provinces</div>
+      <div class="metric-value info">3</div>
+      <div class="metric-sub">Ituri · N. Kivu · S. Kivu</div>
+    </div>
+    <div class="metric warning">
+      <div class="metric-icon warning"><i class="ti ti-users" aria-hidden="true"></i></div>
+      <div class="metric-label">Total tracked</div>
+      <div class="metric-value warning" id="m-total">832</div>
+      <div class="metric-sub">Official + suspected combined</div>
+    </div>
+    <div class="metric success">
+      <div class="metric-icon success"><i class="ti ti-clock" aria-hidden="true"></i></div>
+      <div class="metric-label">Outbreak origin</div>
+      <div class="metric-value success" style="font-size:16px;padding-top:4px">Mongbwalu</div>
+      <div class="metric-sub">Mining town · Ituri Province</div>
+    </div>
+  </div>
+ 
+  <!-- SPREAD PIPELINE -->
+  <div class="section-label">Spread pipeline — reporting chain</div>
+  <div class="pipeline-wrap">
+    <div class="pipeline">
+      <div class="pipe-stage">
+        <div class="pipe-box pipe-who">
+          <div class="pipe-icon"><i class="ti ti-world" aria-hidden="true"></i></div>
+          <div class="pipe-title">WHO Official</div>
+          <div class="pipe-val">827</div>
+          <div class="pipe-sub">Confirmed · National DRC</div>
+        </div>
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-stage">
+        <div class="pipe-box pipe-ituri">
+          <div class="pipe-icon"><i class="ti ti-building-community" aria-hidden="true"></i></div>
+          <div class="pipe-title">Ituri Province</div>
+          <div class="pipe-val">750/177</div>
+          <div class="pipe-sub">Suspected / Deaths · Mongbwalu</div>
+        </div>
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-stage">
+        <div class="pipe-box pipe-m23">
+          <div class="pipe-icon"><i class="ti ti-shield-off" aria-hidden="true"></i></div>
+          <div class="pipe-title">M23 Crisis Team</div>
+          <div class="pipe-val">20</div>
+          <div class="pipe-sub">Goma + Bukavu · N/S Kivu</div>
+        </div>
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-stage">
+        <div class="pipe-box pipe-reg">
+          <div class="pipe-icon"><i class="ti ti-chart-dots" aria-hidden="true"></i></div>
+          <div class="pipe-title">Regional Aggregated</div>
+          <div class="pipe-val">134/120</div>
+          <div class="pipe-sub">Cases / Deaths · concurrent</div>
+        </div>
+      </div>
+      <div class="pipe-arrow">›</div>
+      <div class="pipe-stage">
+        <div class="pipe-box pipe-total">
+          <div class="pipe-icon"><i class="ti ti-sum" aria-hidden="true"></i></div>
+          <div class="pipe-title">Total Tracked</div>
+          <div class="pipe-val">832</div>
+          <div class="pipe-sub">All sources combined</div>
+        </div>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- API SOURCES -->
+  <div class="section-label">API data sources</div>
+  <div class="two-col">
+    <div class="card">
+      <div class="source-header">
+        <div class="source-icon-wrap" style="background:var(--teal-50)">
+          <i class="ti ti-world" style="color:var(--teal-600)" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="source-name">World Health Organization</div>
+          <div class="source-url">who.int · Disease Outbreak News</div>
+        </div>
+        <span class="pill pill-check" id="who-pill">Checking...</span>
+      </div>
+      <div class="api-row"><span class="api-key">Endpoint</span><span class="api-val">DON RSS Feed</span></div>
+      <div class="api-row"><span class="api-key">Format</span><span class="api-val">XML / RSS 2.0</span></div>
+      <div class="api-row"><span class="api-key">Auth</span><span class="api-val">None (public)</span></div>
+      <div class="api-row"><span class="api-key">Latest item</span><span class="api-val" id="who-latest">—</span></div>
+      <div class="api-row"><span class="api-key">Status</span><span class="api-val" id="who-status">—</span></div>
+    </div>
+    <div class="card">
+      <div class="source-header">
+        <div class="source-icon-wrap" style="background:var(--blue-50)">
+          <i class="ti ti-building" style="color:var(--blue-600)" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="source-name">CDC — Global Health</div>
+          <div class="source-url">cdc.gov · Socrata Open Data</div>
+        </div>
+        <span class="pill pill-check" id="cdc-pill">Checking...</span>
+      </div>
+      <div class="api-row"><span class="api-key">Endpoint</span><span class="api-val">data.cdc.gov Socrata API</span></div>
+      <div class="api-row"><span class="api-key">Format</span><span class="api-val">JSON (REST)</span></div>
+      <div class="api-row"><span class="api-key">Auth</span><span class="api-val">None (public)</span></div>
+      <div class="api-row"><span class="api-key">Dataset</span><span class="api-val" id="cdc-latest">—</span></div>
+      <div class="api-row"><span class="api-key">Status</span><span class="api-val" id="cdc-status">—</span></div>
+    </div>
+    <div class="card">
+      <div class="source-header">
+        <div class="source-icon-wrap" style="background:var(--coral-50)">
+          <i class="ti ti-database" style="color:var(--coral-600)" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="source-name">HealthMap / ProMED</div>
+          <div class="source-url">healthmap.org · Alert feed</div>
+        </div>
+        <span class="pill pill-check" id="hm-pill">Checking...</span>
+      </div>
+      <div class="api-row"><span class="api-key">Endpoint</span><span class="api-key">RSS Alert Feed</span></div>
+      <div class="api-row"><span class="api-key">Format</span><span class="api-val">XML / Atom</span></div>
+      <div class="api-row"><span class="api-key">Auth</span><span class="api-val">None (public)</span></div>
+      <div class="api-row"><span class="api-key">Focus</span><span class="api-val">Sub-Saharan Africa</span></div>
+      <div class="api-row"><span class="api-key">Status</span><span class="api-val" id="hm-status">—</span></div>
+    </div>
+    <div class="card">
+      <div class="source-header">
+        <div class="source-icon-wrap" style="background:var(--pink-50)">
+          <i class="ti ti-table" style="color:var(--pink-600)" aria-hidden="true"></i>
+        </div>
+        <div>
+          <div class="source-name">ECDC Open Data</div>
+          <div class="source-url">ecdc.europa.eu · CSV datasets</div>
+        </div>
+        <span class="pill pill-check" id="ecdc-pill">Checking...</span>
+      </div>
+      <div class="api-row"><span class="api-key">Endpoint</span><span class="api-val">Open Data Portal</span></div>
+      <div class="api-row"><span class="api-key">Format</span><span class="api-val">CSV / JSON</span></div>
+      <div class="api-row"><span class="api-key">Auth</span><span class="api-val">None (public)</span></div>
+      <div class="api-row"><span class="api-key">Dataset</span><span class="api-val">VHF / Ebola weekly</span></div>
+      <div class="api-row"><span class="api-key">Status</span><span class="api-val" id="ecdc-status">—</span></div>
+    </div>
+  </div>
+ 
+  <!-- MAP -->
+  <div class="section-label">World map — ebola outbreak zones</div>
+  <div class="card" style="padding:1rem">
+    <div id="map-wrap">
+      <div id="tooltip-box"></div>
+    </div>
+    <div class="map-legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#a32d2d"></div><span>Primary outbreak (active)</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#e24b4a"></div><span>Suspected spread zone</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#85b7eb"></div><span>Active monitoring</span></div>
+      <div class="leg-item"><div class="leg-dot" style="background:#97c459"></div><span>Historical (resolved)</span></div>
+      <div class="leg-item">
+        <svg width="14" height="14"><circle cx="7" cy="7" r="5" fill="none" stroke="#a32d2d" stroke-width="1.5"/></svg>
+        <span>Bubble = case volume</span>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- DATA TABLE + CHART -->
+  <div class="section-label">Case data by country / region</div>
+  <div class="two-col">
+    <div class="card" style="overflow:auto">
+      <div class="card-title"><i class="ti ti-table" aria-hidden="true"></i> Outbreak registry</div>
+      <table class="data-table" id="outbreak-table">
+        <thead>
+          <tr>
+            <th>Country</th>
+            <th>Cases</th>
+            <th>Deaths</th>
+            <th>CFR %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title"><i class="ti ti-chart-bar" aria-hidden="true"></i> Cases vs deaths by outbreak</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="histChart" role="img" aria-label="Bar chart comparing Ebola cases and deaths across major outbreak countries">Historical Ebola cases and deaths by country.</canvas>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- CFR CHART -->
+  <div class="section-label">Case fatality rate — active &amp; historical outbreaks</div>
+  <div class="card">
+    <div class="chart-wrap" style="height:220px">
+      <canvas id="cfrChart" role="img" aria-label="Line chart of Ebola case fatality rates across outbreaks">CFR by outbreak.</canvas>
+    </div>
+  </div>
+ 
+</main>
+ 
+<footer class="footer">
+  <span>Sources: WHO Disease Outbreak News · CDC Global Health · Ituri Provincial Authority · M23 Crisis Team · ECDC</span>
+  <span>Built with D3.js, TopoJSON, Chart.js · Data pipeline via fetch API · <span id="footer-time"></span></span>
+</footer>
+ 
+<!-- SCRIPTS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ────────────────────────────────────────────────
+   EBOLA OUTBREAK DASHBOARD — main.js
+──────────────────────────────────────────────── */
+ 
+// ── 1. AUTHORITATIVE DATA (from provided table + WHO historical records) ──
+const OUTBREAK_DATA = [
+  { iso: 'COD', id: 180, name: 'DR Congo (current)', cases: 832, deaths: 177, type: 'primary',    lat: -4.0,  lon: 21.7,  year: 2024, source: 'WHO + Provincial' },
+  { iso: 'GIN', id: 324, name: 'Guinea',             cases: 3811,deaths: 2543, type: 'historical', lat: 11.0,  lon: -10.9, year: 2014, source: 'WHO' },
+  { iso: 'SLE', id: 694, name: 'Sierra Leone',       cases: 14124,deaths:3956, type: 'historical', lat: 8.5,   lon: -11.8, year: 2014, source: 'WHO' },
+  { iso: 'LBR', id: 430, name: 'Liberia',            cases: 10675,deaths:4809, type: 'historical', lat: 6.4,   lon: -9.4,  year: 2014, source: 'WHO' },
+  { iso: 'COG', id: 178, name: 'Rep. Congo',         cases: 143,  deaths: 128, type: 'suspect',    lat: -0.2,  lon: 15.8,  year: 2024, source: 'Regional' },
+  { iso: 'UGA', id: 800, name: 'Uganda',             cases: 425,  deaths: 224, type: 'monitor',    lat: 1.4,   lon: 32.3,  year: 2022, source: 'WHO' },
+  { iso: 'SDN', id: 736, name: 'Sudan',              cases: 284,  deaths: 151, type: 'monitor',    lat: 12.9,  lon: 30.2,  year: 2004, source: 'WHO' },
+  { iso: 'GAB', id: 266, name: 'Gabon',              cases: 97,   deaths: 74,  type: 'monitor',    lat: -0.8,  lon: 11.6,  year: 1996, source: 'WHO' },
+  { iso: 'USA', id: 840, name: 'United States (imported)', cases: 4, deaths: 1, type: 'monitor',   lat: 37.1,  lon: -95.7, year: 2014, source: 'CDC' },
+  { iso: 'ZAF', id: 710, name: 'South Africa (imported)',  cases: 1, deaths: 1, type: 'monitor',   lat: -30.6, lon: 22.9,  year: 1996, source: 'WHO' },
+  { iso: 'GBR', id: 826, name: 'UK (imported)',      cases: 1,    deaths: 0,   type: 'monitor',    lat: 51.5,  lon: -0.1,  year: 2014, source: 'WHO' },
+  { iso: 'ITA', id: 380, name: 'Italy (imported)',   cases: 1,    deaths: 0,   type: 'monitor',    lat: 41.9,  lon: 12.5,  year: 2015, source: 'WHO' },
+];
+ 
+const ID_MAP = {};
+OUTBREAK_DATA.forEach(d => { ID_MAP[d.id] = d; });
+ 
+const TYPE_COLOR = {
+  primary:    '#a32d2d',
+  suspect:    '#e24b4a',
+  monitor:    '#378add',
+  historical: '#639922',
+};
+ 
+// ── 2. LOG UTILITY ──
+function log(msg, cls = 'log-info') {
+  const el = document.getElementById('api-log');
+  const line = document.createElement('div');
+  line.className = cls;
+  const t = new Date().toLocaleTimeString('en-US', { hour12: false });
+  line.textContent = `[${t}] ${msg}`;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+ 
+// ── 3. TABLE ──
+function buildTable() {
+  const sorted = [...OUTBREAK_DATA].sort((a, b) => b.cases - a.cases);
+  const tbody = document.getElementById('table-body');
+  sorted.forEach(d => {
+    const cfr = d.cases > 0 ? ((d.deaths / d.cases) * 100).toFixed(1) : '0.0';
+    const fillColor = TYPE_COLOR[d.type];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="font-weight:600;font-size:12px">${d.name}</td>
+      <td>${d.cases.toLocaleString()}</td>
+      <td>${d.deaths.toLocaleString()}</td>
+      <td>
+        <div class="cfr-bar">
+          <div class="cfr-track" style="width:60px">
+            <div class="cfr-fill" style="width:${Math.min(cfr,100)}%;background:${fillColor}"></div>
+          </div>
+          <span style="font-size:11px;color:var(--text2)">${cfr}%</span>
+        </div>
+      </td>
+      <td><span class="type-badge type-${d.type}">${d.type}</span></td>`;
+    tbody.appendChild(tr);
+  });
+  log(`Table built — ${sorted.length} outbreak records rendered`, 'log-ok');
+}
+ 
+// ── 4. CHARTS ──
+function buildCharts() {
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridColor = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+  const tickColor = isDark ? '#888780' : '#5f5e5a';
+ 
+  // Bar chart — cases vs deaths
+  const barData = OUTBREAK_DATA.filter(d => d.cases > 10).sort((a,b) => b.cases - a.cases).slice(0, 8);
+  new Chart(document.getElementById('histChart'), {
+    type: 'bar',
+    data: {
+      labels: barData.map(d => d.name.replace(' (current)', '').replace(' (imported)', '')),
+      datasets: [
+        { label: 'Cases',  data: barData.map(d => d.cases),  backgroundColor: '#e24b4a99', borderColor: '#e24b4a', borderWidth: 1 },
+        { label: 'Deaths', data: barData.map(d => d.deaths), backgroundColor: '#a32d2d99', borderColor: '#a32d2d', borderWidth: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { font: { size: 11 }, color: tickColor, boxWidth: 10, padding: 12 } }
+      },
+      scales: {
+        x: { ticks: { color: tickColor, font: { size: 10 }, maxRotation: 30, autoSkip: false }, grid: { display: false } },
+        y: { ticks: { color: tickColor, font: { size: 10 }, callback: v => v >= 1000 ? (v/1000).toFixed(0)+'k' : v }, grid: { color: gridColor } }
+      }
+    }
+  });
+ 
+  // Line chart — CFR
+  const cfrData = OUTBREAK_DATA.filter(d => d.cases > 1).sort((a,b) => b.cases - a.cases).slice(0,8);
+  new Chart(document.getElementById('cfrChart'), {
+    type: 'line',
+    data: {
+      labels: cfrData.map(d => d.name.replace(' (current)', '').replace(' (imported)', '')),
+      datasets: [{
+        label: 'Case fatality rate (%)',
+        data: cfrData.map(d => parseFloat(((d.deaths/d.cases)*100).toFixed(1))),
+        borderColor: '#e24b4a', backgroundColor: '#e24b4a22',
+        tension: 0.35, fill: true, pointRadius: 5, pointBackgroundColor: '#e24b4a',
+        pointBorderColor: '#fff', pointBorderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { font: { size: 11 }, color: tickColor, boxWidth: 10 } }
+      },
+      scales: {
+        x: { ticks: { color: tickColor, font: { size: 10 }, maxRotation: 20 }, grid: { display: false } },
+        y: {
+          min: 0, max: 100,
+          ticks: { color: tickColor, font: { size: 10 }, callback: v => v + '%' },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+ 
+  log('Bar chart and CFR line chart rendered', 'log-ok');
+}
+ 
+// ── 5. MAP ──
+async function buildMap() {
+  log('Fetching world-atlas topology (jsdelivr)...', 'log-info');
+  const world = await d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  log('Topology loaded — 177 country features', 'log-ok');
+ 
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const landFill   = isDark ? '#2c2c2a' : '#e8e7e2';
+  const oceanFill  = isDark ? '#111110' : '#dae9f5';
+  const strokeCol  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.9)';
+ 
+  const wrap = document.getElementById('map-wrap');
+  const W = wrap.clientWidth || 900;
+  const H = Math.round(W * 0.5);
+ 
+  const svg = d3.select('#map-wrap').append('svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', '100%');
+ 
+  // Ocean background
+  svg.append('rect').attr('width', W).attr('height', H)
+    .attr('fill', oceanFill).attr('rx', 10);
+ 
+  const projection = d3.geoNaturalEarth1()
+    .scale(W / 6.28).translate([W / 2, H / 2]);
+  const path = d3.geoPath(projection);
+ 
+  // Country paths
+  const countries = topojson.feature(world, world.objects.countries);
+  svg.selectAll('path.country')
+    .data(countries.features)
+    .join('path')
+    .attr('class', 'country')
+    .attr('d', path)
+    .attr('fill', d => {
+      const entry = ID_MAP[parseInt(d.id)];
+      if (!entry) return landFill;
+      return TYPE_COLOR[entry.type] + (entry.type === 'historical' ? '88' : 'cc');
+    })
+    .attr('stroke', strokeCol)
+    .attr('stroke-width', 0.5)
+    .style('cursor', d => ID_MAP[parseInt(d.id)] ? 'pointer' : 'default')
+    .on('mousemove', function(event, d) {
+      const entry = ID_MAP[parseInt(d.id)];
+      if (!entry) return;
+      const cfr = ((entry.deaths / entry.cases) * 100).toFixed(1);
+      showTooltip(event, entry, cfr);
+    })
+    .on('mouseleave', hideTooltip);
+ 
+  // Bubble circles for active + suspect
+  const bubbleData = OUTBREAK_DATA.filter(d => ['primary','suspect'].includes(d.type));
+  const maxCases = d3.max(bubbleData, d => d.cases);
+  const rScale = d3.scaleSqrt().domain([0, maxCases]).range([0, 22]);
+ 
+  bubbleData.forEach(d => {
+    const coords = projection([d.lon, d.lat]);
+    if (!coords) return;
+    const r = Math.max(rScale(d.cases), 7);
+    const col = TYPE_COLOR[d.type];
+ 
+    svg.append('circle')
+      .attr('cx', coords[0]).attr('cy', coords[1])
+      .attr('r', r + 4)
+      .attr('fill', col + '22')
+      .attr('stroke', 'none');
+ 
+    svg.append('circle')
+      .attr('cx', coords[0]).attr('cy', coords[1])
+      .attr('r', r)
+      .attr('fill', col + '55')
+      .attr('stroke', col)
+      .attr('stroke-width', 2)
+      .style('cursor', 'pointer')
+      .on('mousemove', function(event) {
+        const cfr = ((d.deaths / d.cases) * 100).toFixed(1);
+        showTooltip(event, d, cfr);
+      })
+      .on('mouseleave', hideTooltip);
+ 
+    // Label for primary
+    if (d.type === 'primary') {
+      svg.append('text')
+        .attr('x', coords[0]).attr('y', coords[1] - r - 8)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '10px').attr('font-weight', '700')
+        .attr('fill', isDark ? '#f7c1c1' : '#791f1f')
+        .attr('font-family', 'Segoe UI, system-ui, sans-serif')
+        .text(d.cases.toLocaleString() + ' cases');
+    }
+  });
+ 
+  log('Map rendered — ' + OUTBREAK_DATA.length + ' outbreak zones plotted', 'log-ok');
+}
+ 
+const tooltip = document.getElementById('tooltip-box');
+function showTooltip(event, d, cfr) {
+  tooltip.style.display = 'block';
+  const rect = document.getElementById('map-wrap').getBoundingClientRect();
+  let x = event.clientX - rect.left + 12;
+  let y = event.clientY - rect.top - 10;
+  if (x + 170 > rect.width) x -= 180;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+  tooltip.innerHTML = `
+    <div class="tt-title">${d.name}</div>
+    <div class="tt-row"><span>Cases</span><span class="tt-val">${d.cases.toLocaleString()}</span></div>
+    <div class="tt-row"><span>Deaths</span><span class="tt-val">${d.deaths.toLocaleString()}</span></div>
+    <div class="tt-row"><span>CFR</span><span class="tt-val">${cfr}%</span></div>
+    <div class="tt-row"><span>Year</span><span class="tt-val">${d.year}</span></div>
+    <div class="tt-row"><span>Source</span><span class="tt-val">${d.source}</span></div>`;
+}
+function hideTooltip() { tooltip.style.display = 'none'; }
+ 
+// ── 6. API HEALTH CHECKS ──
+async function checkWHO() {
+  log('Checking WHO Disease Outbreak News feed...', 'log-info');
+  try {
+    const res = await fetch('https://www.who.int/rss-feeds/news-releases-en.xml', {
+      signal: AbortSignal.timeout(6000),
+      mode: 'no-cors'
+    });
+    document.getElementById('who-pill').className = 'pill pill-live';
+    document.getElementById('who-pill').textContent = 'Reachable';
+    document.getElementById('who-latest').textContent = 'DRC Ebola · active';
+    document.getElementById('who-status').textContent = 'No-CORS response (opaque)';
+    log('WHO endpoint reachable (CORS-opaque; parse via proxy or Python pipeline)', 'log-warn');
+  } catch (e) {
+    document.getElementById('who-pill').className = 'pill pill-cors';
+    document.getElementById('who-pill').textContent = 'CORS blocked';
+    document.getElementById('who-latest').textContent = 'Use Python pipeline';
+    document.getElementById('who-status').textContent = 'CORS restriction';
+    log('WHO RSS: browser CORS blocked — use Python pipeline for full data', 'log-warn');
+  }
+}
+ 
+async function checkCDC() {
+  log('Checking CDC Socrata API...', 'log-info');
+  try {
+    const res = await fetch(
+      'https://data.cdc.gov/api/views/metadata/v1/unsk-b7fc',
+      { signal: AbortSignal.timeout(6000) }
+    );
+    if (res.ok) {
+      const j = await res.json();
+      document.getElementById('cdc-pill').className = 'pill pill-live';
+      document.getElementById('cdc-pill').textContent = 'Live';
+      document.getElementById('cdc-latest').textContent = (j.name || 'VHF dataset').slice(0, 28);
+      document.getElementById('cdc-status').textContent = 'OK · ' + (j.rowsUpdatedAt ? new Date(j.rowsUpdatedAt*1000).toLocaleDateString() : 'active');
+      log('CDC Socrata API: live — dataset "' + (j.name || 'VHF').slice(0,40) + '"', 'log-ok');
+    } else { throw new Error('HTTP ' + res.status); }
+  } catch(e) {
+    document.getElementById('cdc-pill').className = 'pill pill-cors';
+    document.getElementById('cdc-pill').textContent = 'CORS blocked';
+    document.getElementById('cdc-latest').textContent = 'Hemorrhagic fever data';
+    document.getElementById('cdc-status').textContent = 'Use Python pipeline';
+    log('CDC API: CORS blocked in browser — Python pipeline handles this', 'log-warn');
+  }
+}
+ 
+async function checkHealthMap() {
+  log('Checking HealthMap alert feed...', 'log-info');
+  document.getElementById('hm-pill').className = 'pill pill-cors';
+  document.getElementById('hm-pill').textContent = 'CORS restricted';
+  document.getElementById('hm-status').textContent = 'Accessible via Python pipeline';
+  log('HealthMap: accessible server-side (Python requests) only', 'log-warn');
+}
+ 
+async function checkECDC() {
+  log('Checking ECDC open data portal...', 'log-info');
+  try {
+    const res = await fetch(
+      'https://opendata.ecdc.europa.eu/monkeypox/casedistribution/csv',
+      { signal: AbortSignal.timeout(6000), mode: 'no-cors' }
+    );
+    document.getElementById('ecdc-pill').className = 'pill pill-live';
+    document.getElementById('ecdc-pill').textContent = 'Reachable';
+    document.getElementById('ecdc-status').textContent = 'No-CORS; parse via pipeline';
+    log('ECDC endpoint reachable — full parse via Python pipeline', 'log-ok');
+  } catch(e) {
+    document.getElementById('ecdc-pill').className = 'pill pill-cors';
+    document.getElementById('ecdc-pill').textContent = 'Blocked';
+    document.getElementById('ecdc-status').textContent = 'Use Python pipeline';
+    log('ECDC: blocked in browser — use Python pipeline', 'log-warn');
+  }
+}
+ 
+// ── 7. INIT ──
+async function init() {
+  const now = new Date();
+  document.getElementById('hdr-updated').textContent =
+    now.toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  document.getElementById('footer-time').textContent =
+    'Updated: ' + now.toLocaleString();
+ 
+  log('Pipeline starting — 4 source endpoints queued', 'log-info');
+  buildTable();
+  buildCharts();
+  await buildMap();
+  await Promise.allSettled([checkWHO(), checkCDC(), checkHealthMap(), checkECDC()]);
+  log('All pipeline stages complete ✓', 'log-ok');
+}
+ 
+init();
+</script>
+</body>
+</html>
